@@ -69,14 +69,14 @@ def on_reviewer_did_show_question(card):
         card_inactivity_timer = QTimer()
         card_inactivity_timer.setSingleShot(True)
         def show_inactivity_alert():
-            # Aqui você pode chamar o popup ou alerta desejado
-            print("ALERTA: Inatividade no cartão detectada!")
+            # Mostra o popup de inatividade
+            show_lembrete()
         card_inactivity_timer.timeout.connect(show_inactivity_alert)
         card_inactivity_timer.start(inactivity_extra * 60 * 1000)
     card_max_timer.timeout.connect(start_inactivity_timer)
     card_max_timer.start(max_answer_secs * 1000)
 
-def on_reviewer_did_answer_card(card, ease):
+def on_reviewer_did_answer_card(card, ease, reviewer):
     global card_max_timer, card_inactivity_timer
     if card_max_timer:
         card_max_timer.stop()
@@ -86,6 +86,18 @@ def on_reviewer_did_answer_card(card, ease):
 # Conecta os hooks na inicialização do addon
 gui_hooks.reviewer_did_show_question.append(on_reviewer_did_show_question)
 gui_hooks.reviewer_did_answer_card.append(on_reviewer_did_answer_card)
+
+# Adiciona hooks para pausar/retomar o timer durante revisão
+def on_state_will_change(new_state, old_state):
+    """Gerencia o timer baseado na mudança de estado"""
+    if dont_stop_scheduler:
+        if new_state == "review":
+            dont_stop_scheduler.pause_schedule()
+        elif old_state == "review":
+            dont_stop_scheduler.resume_schedule()
+
+gui_hooks.state_will_change.append(on_state_will_change)
+
 card_max_timer = None
 card_inactivity_timer = None
 
@@ -165,7 +177,7 @@ def init_addon():
     
     try:
         # Inicialização do agendador
-        dont_stop_scheduler = DontStopScheduler(show_lembrete, hide_lembrete)
+        dont_stop_scheduler = DontStopScheduler(show_lembrete, hide_lembrete, anki_utils)
         dont_stop_scheduler.set_schedule(anki_utils.get_config()['frequency'] * 60)
         
         # Verificar se há decks disponíveis antes de iniciar o agendador

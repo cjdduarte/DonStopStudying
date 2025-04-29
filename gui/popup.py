@@ -204,8 +204,14 @@ class ReminderPopup(QDialog):
             deck_id = mw.col.decks.id(deck_name)
             mw.col.decks.select(deck_id)
             mw.moveToState("review")
+            # Restaura e maximiza a janela
+            if mw.isMinimized():
+                mw.showNormal()
+                mw.showMaximized()
+            # Traz a janela para frente
             mw.raise_()
             mw.activateWindow()
+            mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)
         except Exception as e:
             self.logger.error(f'Erro ao iniciar o estudo: {str(e)}')
         self.close()

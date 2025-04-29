@@ -2,6 +2,7 @@
 from PyQt6.QtCore import QTimer
 import time
 import logging
+from aqt import mw
 
 
 class DontStopScheduler:
@@ -10,20 +11,23 @@ class DontStopScheduler:
     Uses a QTimer to trigger reminders at configurable intervals.
     """
 
-    def __init__(self, alarm_func, cancel_func):
+    def __init__(self, alarm_func, cancel_func, anki_utils):
         """
         Inicializa o agendador.
         
         Args:
             alarm_func: Função a ser chamada quando o timer disparar
             cancel_func: Função a ser chamada quando o timer for cancelado
+            anki_utils: Instância do módulo aqt.utils
         """
         self.alarm_func = alarm_func
         self.cancel_func = cancel_func
+        self.anki_utils = anki_utils
         self.schedule_interval = 1800  # Intervalo padrão em segundos (30 minutos)
         self.timer = QTimer()
         self.timer.timeout.connect(self.exec_schedule)
         self.enabled = False
+        self.paused = False
         self.logger = logging.getLogger(__name__.split('.')[0])
 
     def reset_and_start_timer(self):
@@ -56,14 +60,25 @@ class DontStopScheduler:
             return False
 
     def exec_schedule(self):
-        """
-        Executa a função de alarme quando o timer dispara.
-        """
+        """Executa o agendamento"""
         try:
-            self.logger.info("Executando agendamento: %s" % time.ctime())
+            # Verifica se está em modo de revisão
+            if mw.state == "review":
+                # Verifica se o monitoramento de inatividade está ativado
+                config = self.anki_utils.get_config()
+                if not config.get("inactivity_after_max_answer", False):
+                    self.logger.info("Em modo de revisão e inatividade desativada, pulando lembrete")
+                    return
+                    
+            # Verifica se o addon está habilitado
+            config = self.anki_utils.get_config()
+            if not config.get('enabled', True):
+                self.logger.info("Addon desabilitado, pulando lembrete")
+                return
+                
             self.alarm_func()
         except Exception as e:
-            self.logger.error(f"Erro ao executar o agendamento: {str(e)}")
+            self.logger.error(f'Erro ao executar agendamento: {str(e)}')
 
     def start_schedule(self):
         """
@@ -154,3 +169,23 @@ class DontStopScheduler:
         except Exception as e:
             self.logger.error(f"Erro ao atualizar o estado do agendamento: {str(e)}")
             return False
+
+    def pause_schedule(self):
+        """Pausa o agendamento temporariamente"""
+        try:
+            self.logger.info("Pausando agendamento")
+            if self.timer.isActive():
+                self.timer.stop()
+            self.paused = True
+        except Exception as e:
+            self.logger.error(f"Erro ao pausar agendamento: {str(e)}")
+
+    def resume_schedule(self):
+        """Retoma o agendamento após pausa"""
+        try:
+            self.logger.info("Retomando agendamento")
+            if self.paused:
+                self.timer.start(self.schedule_interval * 1000)
+                self.paused = False
+        except Exception as e:
+            self.logger.error(f"Erro ao retomar agendamento: {str(e)}")
