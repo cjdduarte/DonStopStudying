@@ -200,22 +200,31 @@ class ReminderPopup(QDialog):
         # Inicia o estudo do deck selecionado, dá foco ao Anki e fecha o popup
         try:
             from aqt import mw
-            deck_name = self.deck_select.currentData() or self.deck_select.currentText()
-            deck_id = mw.col.decks.id(deck_name)
-            mw.col.decks.select(deck_id)
             
-            # Primeiro muda para a tela de revisão
-            mw.moveToState("review")
-            
-            # Depois restaura e maximiza a janela
-            if mw.isMinimized():
-                mw.showNormal()
-                mw.showMaximized()
-            
-            # Por último traz a janela para frente
-            mw.raise_()
-            mw.activateWindow()
-            mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)
+            # Se já estiver na tela de revisão, apenas restaura a janela se minimizada
+            if mw.state == "review":
+                if mw.isMinimized():
+                    mw.showNormal()
+                    mw.showMaximized()
+                mw.raise_()
+                mw.activateWindow()
+                mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)
+            else:
+                # Se não estiver na tela de revisão, muda para ela
+                deck_name = self.deck_select.currentData() or self.deck_select.currentText()
+                deck_id = mw.col.decks.id(deck_name)
+                mw.col.decks.select(deck_id)
+                mw.moveToState("review")
+                
+                # Restaura e maximiza a janela
+                if mw.isMinimized():
+                    mw.showNormal()
+                    mw.showMaximized()
+                
+                # Traz a janela para frente
+                mw.raise_()
+                mw.activateWindow()
+                mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)
         except Exception as e:
             self.logger.error(f'Erro ao iniciar o estudo: {str(e)}')
         self.close()

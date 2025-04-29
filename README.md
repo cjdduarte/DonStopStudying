@@ -66,6 +66,18 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ---
 
+### **Screenshots**
+
+#### Configuration Screen
+![Configuration Screen](https://i.ibb.co/gFZcDBWG/image.png)
+*Here you can configure the default deck, reminder frequency, enable/disable the feature, and adjust inactivity time.*
+
+#### Reminder Popup
+![Reminder Popup](https://i.ibb.co/JWKbb4SV/image.png)
+*The popup appears automatically with options to start studying now or postpone the reminder.*
+
+---
+
 ### **Technical Details**
 
 - The add-on uses Qt timers to control reminders.
@@ -77,7 +89,7 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ### **Changelog**
 
-- **v1.0 - Initial Release**:
+- **v1.0 - 2025-04-28 - Initial Release**:
   - Periodic and inactivity reminders.
   - GUI configuration.
   - Modern and responsive popup.
@@ -88,7 +100,7 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ### **License**
 
-- **Copyright(C)** | Charles Henry (modified)
+- **Copyright(C)** | Carlos Duarte
 - Licensed under **[GNU AGPL, version 3](http://www.gnu.org/licenses/agpl.html)** or later.
 
 ---
