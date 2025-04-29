@@ -1,4 +1,4 @@
-from aqt.qt import QLineEdit
+from aqt.qt import QLineEdit, QMessageBox
 # Copyright 2020 Charles Henry - Modificado
 from PyQt6 import QtCore
 from aqt import Qt, QWidget, QGridLayout, QPushButton, QDialog, QHBoxLayout, QLabel, QVBoxLayout, QComboBox, QCheckBox, QSpinBox

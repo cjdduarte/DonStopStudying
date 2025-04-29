@@ -90,7 +90,7 @@ card_max_timer = None
 card_inactivity_timer = None
 
 # Variáveis globais
-ruzu_popup = None
+reminder_popup = None
 anki_utils = None
 dont_stop_scheduler = None
 
@@ -119,13 +119,13 @@ def show_lembrete():
             logger.error(tr('error_get_decks').format(str(e)))
             return
     
-    ruzu_popup.show_popup()
+    reminder_popup.show_popup()
 
 
 def hide_lembrete():
     """Esconde o lembrete"""
     logger.info(tr('log_hiding_reminder').format(time.ctime()))
-    ruzu_popup.hide_card()
+    reminder_popup.hide_card()
 
 
 def show_options():
@@ -139,7 +139,7 @@ def show_options():
 
 def init_addon():
     """Inicializa o addon após o perfil ser carregado"""
-    global ruzu_popup, anki_utils, dont_stop_scheduler
+    global reminder_popup, anki_utils, dont_stop_scheduler
     
     logger.info(tr('log_initializing'))
 
@@ -159,8 +159,7 @@ def init_addon():
         logger.info("meta.json não encontrado. Pulando leitura.")
     
     # Inicialização dos componentes principais
-    global ruzu_popup
-    ruzu_popup = ReminderPopup(mw)
+    global reminder_popup
     reminder_popup = ReminderPopup(mw)
     anki_utils = AnkiUtils()
     
