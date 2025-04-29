@@ -1,6 +1,6 @@
 {
-    "deck": "Default",
-    "frequency": 1,
+    "deck": "",
+    "frequency": 10,
     "enabled": true,
     "window_location": "bottom_right",
     "inactivity_after_max_answer": false,
