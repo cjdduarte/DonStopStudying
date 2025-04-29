@@ -1,11 +1,11 @@
 from aqt.qt import QLineEdit
 # Copyright 2020 Charles Henry - Modificado
-from aqt import QLabel, QGridLayout, QPushButton, QCheckBox, QComboBox, QDialog, QMessageBox
-from aqt.qt import Qt
-from aqt.utils import tooltip
-from ..anki_utils import AnkiUtils
+from PyQt6 import QtCore
+from aqt import Qt, QWidget, QGridLayout, QPushButton, QDialog, QHBoxLayout, QLabel, QVBoxLayout, QComboBox, QCheckBox, QSpinBox
+from aqt.utils import showInfo, tooltip
+from anki_utils import AnkiUtils
 import logging
-from ..translations import tr
+from translations import tr
 
 class ReminderOptions(QDialog):
 
@@ -105,19 +105,19 @@ class ReminderOptions(QDialog):
         # Frequência
         self.freq_select_text = QLabel(text=tr("freq_select"))
         self.freq_select_map = {
-            'A cada 1 minuto': 1,
-            'A cada 2 minutos': 2,
-            'A cada 3 minutos': 3,
-            'A cada 5 minutos': 5,
-            'A cada 10 minutos': 10,
-            'A cada 15 minutos': 15,
-            'A cada 20 minutos': 20,
-            'A cada 25 minutos': 25,
-            'A cada 30 minutos': 30,
-            'A cada 45 minutos': 45,
-            'A cada 60 minutos': 60,
-            'A cada 90 minutos': 90,
-            'A cada 120 minutos': 120
+            tr('every_1_min'): 1,
+            tr('every_2_min'): 2,
+            tr('every_3_min'): 3,
+            tr('every_5_min'): 5,
+            tr('every_10_min'): 10,
+            tr('every_15_min'): 15,
+            tr('every_20_min'): 20,
+            tr('every_25_min'): 25,
+            tr('every_30_min'): 30,
+            tr('every_45_min'): 45,
+            tr('every_60_min'): 60,
+            tr('every_90_min'): 90,
+            tr('every_120_min'): 120
         }
         self.freq_select = QComboBox()
         for frequency in self.freq_select_map.keys():
@@ -125,8 +125,7 @@ class ReminderOptions(QDialog):
         try:
             freq_select_idx = list(self.freq_select_map.values()).index(self.config['frequency'])
         except (ValueError, KeyError) as e:
-            self.logger.warning(f'Problema ao definir a frequência com base no valor de configuração: {str(e)}. '
-                              'Definindo para o padrão (A cada 30 minutos)')
+            self.logger.warning(tr('default_frequency_warning'))
             freq_select_idx = 4  # Padrão para 30 minutos
         finally:
             self.freq_select.setCurrentIndex(freq_select_idx)
@@ -142,14 +141,14 @@ class ReminderOptions(QDialog):
 
         # --- Inatividade após tempo máximo do cartão ---
         from PyQt6.QtWidgets import QFrame
-        self.inactivity_after_max_answer_check = QCheckBox("Lembrete após tempo do cartão (ativa o campo abaixo)")
+        self.inactivity_after_max_answer_check = QCheckBox(tr("inactivity_reminder_label"))
         self.inactivity_after_max_answer_check.setChecked(self.config.get('inactivity_after_max_answer', False))
 
         self.inactivity_divider = QFrame()
         self.inactivity_divider.setFrameShape(QFrame.Shape.HLine)
         self.inactivity_divider.setFrameShadow(QFrame.Shadow.Sunken)
 
-        self.inactivity_extra_minutes_label = QLabel("Tempo extra de inatividade (min, só se ativado acima):")
+        self.inactivity_extra_minutes_label = QLabel(tr("inactivity_extra_time_label"))
         self.inactivity_extra_minutes_select = QComboBox()
         for freq_label, freq_value in self.freq_select_map.items():
             self.inactivity_extra_minutes_select.addItem(freq_label, freq_value)

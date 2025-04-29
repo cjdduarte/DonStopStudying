@@ -1,11 +1,19 @@
 from PyQt6.QtCore import QLocale
+from aqt import mw
 
 def get_language():
-    lang = QLocale().name()
-    #print(lang)
-    if lang.startswith("pt"):
-        return "pt_BR"
-    return "en"
+    # Tenta obter o idioma do Anki
+    try:
+        lang = mw.pm.meta.get('defaultLang', 'en')
+        if lang.startswith("pt"):
+            return "pt_BR"
+        return "en"
+    except:
+        # Fallback para o idioma do sistema
+        lang = QLocale().name()
+        if lang.startswith("pt"):
+            return "pt_BR"
+        return "en"
 
 translations = {
     "pt_BR": {
@@ -40,6 +48,61 @@ translations = {
         "confirm_save_msg": "Deseja realmente salvar as configurações do addon?",
         "yes": "Sim",
         "no": "Não",
+        "every_1_min": "A cada 1 minuto",
+        "every_2_min": "A cada 2 minutos",
+        "every_3_min": "A cada 3 minutos",
+        "every_5_min": "A cada 5 minutos",
+        "every_10_min": "A cada 10 minutos",
+        "every_15_min": "A cada 15 minutos",
+        "every_20_min": "A cada 20 minutos",
+        "every_25_min": "A cada 25 minutos",
+        "every_30_min": "A cada 30 minutos",
+        "every_45_min": "A cada 45 minutos",
+        "every_60_min": "A cada 60 minutos",
+        "every_90_min": "A cada 90 minutos",
+        "every_120_min": "A cada 120 minutos",
+        "default_frequency_warning": "Problema ao definir a frequência com base no valor de configuração. Definindo para o padrão (A cada 30 minutos)",
+        "inactivity_reminder_label": "Lembrete após tempo do cartão (ativa o campo abaixo)",
+        "inactivity_extra_time_label": "Tempo extra de inatividade (min, só se ativado acima):",
+        "log_showing_reminder": "Mostrando lembrete: {}",
+        "log_hiding_reminder": "Escondendo lembrete: {}",
+        "log_initializing": "Inicializando Lembrete de Estudo...",
+        "log_empty_deck": "Deck configurado estava vazio. Usando o primeiro deck disponível: {}",
+        "log_no_deck": "Nenhum deck disponível. Não é possível mostrar o lembrete.",
+        "log_deck_not_found": "Deck '{}' não encontrado.",
+        "log_showing_popup": "Mostrando popup de lembrete...",
+        "error_get_decks": "Erro ao obter decks: {}",
+        "error_init_addon": "Erro ao inicializar o addon: {}",
+        "error_load_decks": "Erro ao carregar decks: {}",
+        "error_position_popup": "Erro ao posicionar o popup: {}",
+        "error_start_study": "Erro ao iniciar o estudo: {}",
+        "error_show_popup": "Erro ao mostrar popup: {}",
+        "error_get_config": "Erro ao obter a configuração: {}",
+        "error_get_reviewer": "Erro ao obter o revisor: {}",
+        "error_get_collection": "Erro ao obter a coleção: {}",
+        "error_get_selected_deck": "Erro ao obter o deck selecionado: {}",
+        "error_get_scheduler": "Erro ao obter o agendador: {}",
+        "error_show_question": "Erro ao mostrar a pergunta: {}",
+        "error_show_answer": "Erro ao mostrar a resposta: {}",
+        "error_answer_card": "Erro ao responder o cartão: {}",
+        "error_overview_state": "Erro ao mover para o estado de visão geral: {}",
+        "error_review_state": "Erro ao mover para o estado de revisão: {}",
+        "error_get_question": "Erro ao obter a pergunta: {}",
+        "error_get_answer": "Erro ao obter a resposta: {}",
+        "error_get_current_card": "Erro ao obter o cartão atual: {}",
+        "error_save_config": "Erro ao salvar a configuração: {}",
+        "error_set_schedule": "Erro ao definir o agendamento: {}",
+        "error_exec_schedule": "Erro ao executar o agendamento: {}",
+        "error_start_schedule": "Erro ao iniciar o agendamento: {}",
+        "error_cancel_function": "Erro ao executar a função de cancelamento: {}",
+        "error_stop_schedule": "Erro ao parar o agendamento: {}",
+        "error_update_schedule": "Erro ao atualizar o estado do agendamento: {}",
+        "exception_reviewer": "Revisor não disponível",
+        "exception_collection": "Coleção não disponível",
+        "exception_decks": "Decks não disponíveis",
+        "exception_scheduler": "Agendador não disponível",
+        "exception_review_inactive": "Não foi possível obter o cartão atual porque a revisão não está ativa.",
+        "exception_current_card": "Cartão não disponível",
     },
     "en": {
         "app_title": "Study Reminder",
@@ -73,6 +136,61 @@ translations = {
         "confirm_save_msg": "Do you really want to save the addon's settings?",
         "yes": "Yes",
         "no": "No",
+        "every_1_min": "Every 1 minute",
+        "every_2_min": "Every 2 minutes",
+        "every_3_min": "Every 3 minutes",
+        "every_5_min": "Every 5 minutes",
+        "every_10_min": "Every 10 minutes",
+        "every_15_min": "Every 15 minutes",
+        "every_20_min": "Every 20 minutes",
+        "every_25_min": "Every 25 minutes",
+        "every_30_min": "Every 30 minutes",
+        "every_45_min": "Every 45 minutes",
+        "every_60_min": "Every 60 minutes",
+        "every_90_min": "Every 90 minutes",
+        "every_120_min": "Every 120 minutes",
+        "default_frequency_warning": "Problem setting frequency based on configuration value. Setting to default (Every 30 minutes)",
+        "inactivity_reminder_label": "Reminder after card time (enables field below)",
+        "inactivity_extra_time_label": "Extra inactivity time (min, only if enabled above):",
+        "log_showing_reminder": "Showing reminder: {}",
+        "log_hiding_reminder": "Hiding reminder: {}",
+        "log_initializing": "Initializing Study Reminder...",
+        "log_empty_deck": "Configured deck was empty. Using first available deck: {}",
+        "log_no_deck": "No deck available. Cannot show reminder.",
+        "log_deck_not_found": "Deck '{}' not found",
+        "log_showing_popup": "Showing reminder popup...",
+        "error_get_decks": "Error getting decks: {}",
+        "error_init_addon": "Error initializing addon: {}",
+        "error_load_decks": "Error loading decks: {}",
+        "error_position_popup": "Error positioning popup: {}",
+        "error_start_study": "Error starting study: {}",
+        "error_show_popup": "Error showing popup: {}",
+        "error_get_config": "Error getting configuration: {}",
+        "error_get_reviewer": "Error getting reviewer: {}",
+        "error_get_collection": "Error getting collection: {}",
+        "error_get_selected_deck": "Error getting selected deck: {}",
+        "error_get_scheduler": "Error getting scheduler: {}",
+        "error_show_question": "Error showing question: {}",
+        "error_show_answer": "Error showing answer: {}",
+        "error_answer_card": "Error answering card: {}",
+        "error_overview_state": "Error moving to overview state: {}",
+        "error_review_state": "Error moving to review state: {}",
+        "error_get_question": "Error getting question: {}",
+        "error_get_answer": "Error getting answer: {}",
+        "error_get_current_card": "Error getting current card: {}",
+        "error_save_config": "Error saving configuration: {}",
+        "error_set_schedule": "Error setting schedule: {}",
+        "error_exec_schedule": "Error executing schedule: {}",
+        "error_start_schedule": "Error starting schedule: {}",
+        "error_cancel_function": "Error executing cancel function: {}",
+        "error_stop_schedule": "Error stopping schedule: {}",
+        "error_update_schedule": "Error updating schedule state: {}",
+        "exception_reviewer": "Reviewer not available",
+        "exception_collection": "Collection not available",
+        "exception_decks": "Decks not available",
+        "exception_scheduler": "Scheduler not available",
+        "exception_review_inactive": "Could not get current card because review is not active.",
+        "exception_current_card": "Card not available",
     }
 }
 

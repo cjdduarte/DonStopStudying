@@ -1,6 +1,7 @@
 # Copyright 2020 Charles Henry - Modificado
 import aqt
 import logging
+from translations import tr
 
 
 class AnkiUtils:
@@ -21,29 +22,29 @@ class AnkiUtils:
         try:
             reviewer = self.main_window().reviewer
             if reviewer is None:
-                raise Exception('Revisor não disponível')
+                raise Exception(tr('exception_reviewer'))
             return reviewer
         except Exception as e:
-            self.logger.error(f'Erro ao obter o revisor: {str(e)}')
-            raise Exception('Houve um problema ao obter o revisor')
+            self.logger.error(tr('error_get_reviewer').format(str(e)))
+            raise Exception(tr('exception_reviewer'))
 
     def collection(self):
         """Retorna a coleção de cartões do Anki"""
         try:
             collection = self.main_window().col
             if collection is None:
-                raise Exception('Coleção não disponível')
+                raise Exception(tr('exception_collection'))
             return collection
         except Exception as e:
-            self.logger.error(f'Erro ao obter a coleção: {str(e)}')
-            raise Exception('Houve um problema ao obter a coleção')
+            self.logger.error(tr('error_get_collection').format(str(e)))
+            raise Exception(tr('exception_collection'))
 
     def selected_deck(self):
         """Retorna o nome do deck selecionado atualmente"""
         try:
             return self.main_window()._selectedDeck()['name']
         except Exception as e:
-            self.logger.error(f'Erro ao obter o deck selecionado: {str(e)}')
+            self.logger.error(tr('error_get_selected_deck').format(str(e)))
             return ""
 
     def get_decks(self):
@@ -51,22 +52,22 @@ class AnkiUtils:
         try:
             decks = self.collection().decks
             if decks is None:
-                raise Exception('Decks não disponíveis')
+                raise Exception(tr('exception_decks'))
             return decks.all_names_and_ids()
         except Exception as e:
-            self.logger.error(f'Erro ao obter os decks: {str(e)}')
-            raise Exception('Houve um problema ao obter os decks')
+            self.logger.error(tr('error_get_decks').format(str(e)))
+            raise Exception(tr('exception_decks'))
 
     def scheduler(self):
         """Retorna o agendador do Anki"""
         try:
             scheduler = self.collection().sched
             if scheduler is None:
-                raise Exception('Agendador não disponível')
+                raise Exception(tr('exception_scheduler'))
             return scheduler
         except Exception as e:
-            self.logger.error(f'Erro ao obter o agendador: {str(e)}')
-            raise Exception('Houve um problema ao obter o agendador')
+            self.logger.error(tr('error_get_scheduler').format(str(e)))
+            raise Exception(tr('exception_scheduler'))
 
     def review_is_active(self):
         """Verifica se a revisão está ativa"""
@@ -84,7 +85,7 @@ class AnkiUtils:
             else:
                 return False
         except Exception as e:
-            self.logger.error(f'Erro ao mostrar a pergunta: {str(e)}')
+            self.logger.error(tr('error_show_question').format(str(e)))
             return False
 
     def show_answer(self):
@@ -96,7 +97,7 @@ class AnkiUtils:
             else:
                 return False
         except Exception as e:
-            self.logger.error(f'Erro ao mostrar a resposta: {str(e)}')
+            self.logger.error(tr('error_show_answer').format(str(e)))
             return False
 
     def answer_card(self, ease):
@@ -122,7 +123,7 @@ class AnkiUtils:
             reviewer._answerCard(ease)
             return True
         except Exception as e:
-            self.logger.error(f'Erro ao responder o cartão: {str(e)}')
+            self.logger.error(tr('error_answer_card').format(str(e)))
             return False
 
     def move_to_overview_state(self, name):
@@ -148,7 +149,7 @@ class AnkiUtils:
                     return True
             return False
         except Exception as e:
-            self.logger.error(f'Erro ao mover para o estado de visão geral: {str(e)}')
+            self.logger.error(tr('error_overview_state').format(str(e)))
             return False
 
     def move_to_review_state(self, name):
@@ -165,12 +166,12 @@ class AnkiUtils:
             # Primeiro, seleciona o deck
             collection = self.collection()
             if collection is None:
-                self.logger.error("Coleção não disponível")
+                self.logger.error(tr('exception_collection'))
                 return False
                 
             deck = collection.decks.by_name(name)
             if deck is None:
-                self.logger.error(f"Deck '{name}' não encontrado")
+                self.logger.error(tr('log_deck_not_found').format(name))
                 return False
                 
             # Seleciona o deck
@@ -181,7 +182,7 @@ class AnkiUtils:
                 self.main_window().moveToState('review')
                 return True
             except Exception as e:
-                self.logger.warning(f"Método 1 falhou: {str(e)}")
+                self.logger.warning(tr('error_review_state').format(str(e)))
             
             # Método 2: Tenta usar o método onOverview e depois onStudyKey
             try:
@@ -189,7 +190,7 @@ class AnkiUtils:
                 self.main_window().onStudyKey()
                 return True
             except Exception as e:
-                self.logger.warning(f"Método 2 falhou: {str(e)}")
+                self.logger.warning(tr('error_review_state').format(str(e)))
             
             # Método 3: Tenta usar o método onDeckBrowser e depois onStudyDeck
             try:
@@ -197,13 +198,13 @@ class AnkiUtils:
                 self.main_window().onStudyDeck()
                 return True
             except Exception as e:
-                self.logger.warning(f"Método 3 falhou: {str(e)}")
+                self.logger.warning(tr('error_review_state').format(str(e)))
                 
             # Se chegamos aqui, todos os métodos falharam
-            self.logger.error("Todos os métodos para iniciar o estudo falharam")
+            self.logger.error(tr('error_review_state').format("All methods failed"))
             return False
         except Exception as e:
-            self.logger.error(f'Erro ao mover para o estado de revisão: {str(e)}')
+            self.logger.error(tr('error_review_state').format(str(e)))
             return False
 
     def get_question(self, card):
@@ -215,7 +216,7 @@ class AnkiUtils:
                 question = card.question(),
             return question
         except Exception as e:
-            self.logger.error(f'Erro ao obter a pergunta: {str(e)}')
+            self.logger.error(tr('error_get_question').format(str(e)))
             return ""
 
     def get_answer(self, card):
@@ -227,14 +228,14 @@ class AnkiUtils:
                 answer = card.answer()
             return answer
         except Exception as e:
-            self.logger.error(f'Erro ao obter a resposta: {str(e)}')
+            self.logger.error(tr('error_get_answer').format(str(e)))
             return ""
 
     def get_current_card(self):
         """Obtém informações sobre o cartão atual"""
         try:
             if not self.review_is_active():
-                raise Exception('Não foi possível obter o cartão atual porque a revisão não está ativa.')
+                raise Exception(tr('exception_review_inactive'))
 
             reviewer = self.reviewer()
             card = reviewer.card
@@ -251,10 +252,10 @@ class AnkiUtils:
                 }
                 return response
             else:
-                raise Exception('Cartão não disponível')
+                raise Exception(tr('exception_current_card'))
         except Exception as e:
-            self.logger.error(f'Erro ao obter o cartão atual: {str(e)}')
-            raise Exception('Houve um problema ao obter o cartão atual')
+            self.logger.error(tr('error_get_current_card').format(str(e)))
+            raise Exception(tr('exception_current_card'))
 
     def get_config(self):
         """Obtém a configuração do addon a partir de settings.json.
@@ -288,7 +289,7 @@ class AnkiUtils:
                     json.dump(default_config, f, ensure_ascii=False, indent=4)
                 return default_config
         except Exception as e:
-            self.logger.error(f'Erro ao obter a configuração: {str(e)}')
+            self.logger.error(tr('error_get_config').format(str(e)))
             return default_config
 
     def set_config(self, config):
@@ -301,5 +302,5 @@ class AnkiUtils:
                 json.dump(config, f, ensure_ascii=False, indent=4)
             return True
         except Exception as e:
-            self.logger.error(f'Erro ao salvar a configuração: {str(e)}')
+            self.logger.error(tr('error_save_config').format(str(e)))
             return False

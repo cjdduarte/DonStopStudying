@@ -1,18 +1,26 @@
+import os
+import sys
+
+# Adiciona o diretório do addon ao PYTHONPATH
+addon_dir = os.path.dirname(os.path.abspath(__file__))
+if addon_dir not in sys.path:
+    sys.path.append(addon_dir)
+
 from aqt import gui_hooks
 from aqt.qt import QTimer
 # Copyright 2020 Charles Henry - Modificado
 
-from .gui.popup import ReminderPopup
+from gui.popup import ReminderPopup
 import time
-import sys
 import logging
 from aqt import mw
 from aqt.qt import *
 from aqt.utils import showInfo
-from .gui.popup import ReminderPopup
-from .anki_utils import AnkiUtils
-from .gui.options import ReminderOptions
-from .dont_stop_scheduler import DontStopScheduler
+from gui.popup import ReminderPopup
+from anki_utils import AnkiUtils
+from gui.options import ReminderOptions
+from dont_stop_scheduler import DontStopScheduler
+from translations import tr
 
 # Configuração do logger
 logger = logging.getLogger(__name__.split('.')[0])
@@ -89,7 +97,7 @@ dont_stop_scheduler = None
 
 def show_lembrete():
     """Mostra o lembrete para voltar a estudar"""
-    logger.info('Mostrando lembrete: %s' % time.ctime())
+    logger.info(tr('log_showing_reminder').format(time.ctime()))
     
     # Verificar se o deck configurado existe
     config = anki_utils.get_config()
@@ -102,13 +110,13 @@ def show_lembrete():
             if decks:
                 deck_name = decks[0].name
                 config['deck'] = deck_name
-                logger.info(f'Deck configurado estava vazio. Usando o primeiro deck disponível: {deck_name}')
+                logger.info(tr('log_empty_deck').format(deck_name))
             else:
-                logger.warning('Nenhum deck disponível. Não é possível mostrar o lembrete.')
-                showInfo("Nenhum deck disponível. Por favor, crie um deck antes de usar o Lembrete de Estudo.")
+                logger.warning(tr('log_no_deck'))
+                showInfo(tr("no_deck"))
                 return
         except Exception as e:
-            logger.error(f'Erro ao obter decks: {str(e)}')
+            logger.error(tr('error_get_decks').format(str(e)))
             return
     
     ruzu_popup.show_popup()
@@ -116,7 +124,7 @@ def show_lembrete():
 
 def hide_lembrete():
     """Esconde o lembrete"""
-    logger.info('Escondendo lembrete: %s' % time.ctime())
+    logger.info(tr('log_hiding_reminder').format(time.ctime()))
     ruzu_popup.hide_card()
 
 
@@ -133,7 +141,7 @@ def init_addon():
     """Inicializa o addon após o perfil ser carregado"""
     global ruzu_popup, anki_utils, dont_stop_scheduler
     
-    logger.info('Inicializando Lembrete de Estudo...')
+    logger.info(tr('log_initializing'))
 
     # Tenta ler o meta.json se ele existir
     import os
@@ -164,7 +172,7 @@ def init_addon():
         # Verificar se há decks disponíveis antes de iniciar o agendador
         decks = anki_utils.get_decks()
         if not decks:
-            logger.warning('Nenhum deck disponível. O lembrete não será iniciado.')
+            logger.warning(tr('log_no_deck'))
         else:
             # Verificar se o deck configurado existe
             config = anki_utils.get_config()
@@ -174,24 +182,26 @@ def init_addon():
             # Verifica se o deck salvo existe na lista de decks disponíveis
             deck_names = [d.name if hasattr(d, "name") else d[0] for d in decks]
             if not deck_name or deck_name not in deck_names:
-                logger.warning(f"Deck '{deck_name}' não encontrado. Usando o primeiro deck disponível apenas em memória.")
+                logger.warning(tr('log_deck_not_found').format(deck_name))
                 deck_name = deck_names[0]
                 config['deck'] = deck_name
-                logger.info(f'Deck configurado estava vazio. Usando o primeiro deck disponível: {deck_name}')
+                # Salva a configuração atualizada no arquivo
+                anki_utils.set_config(config)
+                logger.info(tr('log_empty_deck').format(deck_name))
             
             # Iniciar o agendador se estiver habilitado
             if config['enabled']:
                 logger.info('Iniciando agendador...')
                 dont_stop_scheduler.start_schedule()
     except Exception as e:
-        logger.error(f'Erro ao inicializar o addon: {str(e)}')
+        logger.error(tr('error_init_addon').format(str(e)))
 
 
 # Adiciona a ação de configuração ao gerenciador de addons
 mw.addonManager.setConfigAction(__name__, lambda: show_options())
 
 # Adiciona a opção ao menu Ferramentas
-options_action = QAction("Configurar Lembrete de Estudo", mw)
+options_action = QAction(tr("options_menu"), mw)
 options_action.triggered.connect(lambda _: show_options())
 mw.form.menuTools.addAction(options_action)
 

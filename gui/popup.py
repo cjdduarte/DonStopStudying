@@ -2,9 +2,9 @@
 from PyQt6 import QtCore
 from aqt import Qt, QWidget, QGridLayout, QPushButton, QDialog, QHBoxLayout, QLabel, QVBoxLayout, QComboBox
 from aqt.utils import showInfo, tooltip
-from ..anki_utils import AnkiUtils
+from anki_utils import AnkiUtils
 import logging
-from ..translations import tr
+from translations import tr
 
 
 class ReminderPopup(QDialog):
@@ -72,7 +72,7 @@ class ReminderPopup(QDialog):
         layout.addWidget(header_container)
 
         # Label do deck
-        self.deck_label = QLabel("Deck atual:")
+        self.deck_label = QLabel(tr("popup_subtitle"))
         self.deck_label.setStyleSheet("""
             font-size: 14px;
             color: #666;
