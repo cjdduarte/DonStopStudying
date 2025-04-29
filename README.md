@@ -69,7 +69,7 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 ### **Screenshots**
 
 #### Configuration Screen
-![Configuration Screen](https://i.ibb.co/gFZcDBWG/image.png)
+![Configuration Screen](https://i.ibb.co/4ZTznQMd/image.png)
 *Here you can configure the default deck, reminder frequency, enable/disable the feature, and adjust inactivity time.*
 
 #### Reminder Popup
