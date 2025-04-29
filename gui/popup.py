@@ -203,12 +203,16 @@ class ReminderPopup(QDialog):
             deck_name = self.deck_select.currentData() or self.deck_select.currentText()
             deck_id = mw.col.decks.id(deck_name)
             mw.col.decks.select(deck_id)
+            
+            # Primeiro muda para a tela de revisão
             mw.moveToState("review")
-            # Restaura e maximiza a janela
+            
+            # Depois restaura e maximiza a janela
             if mw.isMinimized():
                 mw.showNormal()
                 mw.showMaximized()
-            # Traz a janela para frente
+            
+            # Por último traz a janela para frente
             mw.raise_()
             mw.activateWindow()
             mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)

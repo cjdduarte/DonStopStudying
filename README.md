@@ -12,9 +12,10 @@ For issues or suggestions, open an issue at:
 
 ### **Features**
 - **Periodic reminder:** Shows a popup in the corner of the screen after a configurable interval, if you are outside review mode.
-- **Inactivity detection:** If you remain inactive during review for a configurable extra time, a popup alerts you to get back on track.
+- **Inactivity detection:** If enabled, monitors inactivity during review and shows a popup after the configured extra time.
 - **Easy configuration:** GUI to choose deck, reminder frequency, enable/disable the feature, and adjust inactivity time.
 - **Modern popup:** Stylish window with quick action buttons for "Study Now" or "Later".
+- **Smart window management:** When clicking "Study Now", the Anki window is restored and brought to front already in review mode.
 
 ---
 
@@ -24,15 +25,17 @@ For issues or suggestions, open an issue at:
    - The add-on starts a timer as soon as Anki is opened.
    - If you are outside review mode (e.g., browsing decks, menus, etc.), when the configured time is reached, a popup appears suggesting you get back to studying.
    - If you are reviewing, the periodic reminder is postponed until you leave review mode.
+   - The timer resets when you return to the main screen.
 
 2. **Inactivity Reminder**
-   - If enabled, the add-on monitors the maximum allowed time to answer each card.
+   - If enabled in settings, the add-on monitors the maximum allowed time to answer each card.
    - When the card's time runs out, a second timer starts ("extra inactivity time").
    - If you remain inactive, a popup appears alerting you to resume studying.
+   - This feature can be enabled/disabled in the settings.
 
 3. **Reminder Popup**
    - Shows the configured deck and allows you to start reviewing immediately or postpone the reminder.
-   - The "Study Now" button brings Anki to the front and starts reviewing the selected deck.
+   - The "Study Now" button brings Anki to the front already in review mode.
    - The "Later" button closes the popup and restarts the timer.
 
 ---
@@ -68,6 +71,7 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 - The add-on uses Qt timers to control reminders.
 - Uses Anki hooks to detect start/end of review and control inactivity reminders.
 - The popup is an independent window, always visible even if Anki is minimized (but not closed).
+- The timer is paused during review and resumes when returning to the main screen.
 
 ---
 
@@ -77,6 +81,8 @@ You can adjust options via the GUI or directly in the `settings.json` file:
   - Periodic and inactivity reminders.
   - GUI configuration.
   - Modern and responsive popup.
+  - Smart window management.
+  - Improved timer control during review.
 
 ---
 
