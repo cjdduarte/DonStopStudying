@@ -54,7 +54,7 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ## **Changelog**
 
-- **v1.2 - 2025-05-01 - Improvements**:
+- **v1.2 - 2025-04-30 - Improvements**:
   - Added sequential popup position rotation (changes every 10s)
   - Enhanced popup appearance with a more elegant and uniform border
 
