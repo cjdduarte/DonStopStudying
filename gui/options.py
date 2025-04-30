@@ -28,7 +28,7 @@ class ReminderOptions(QDialog):
         
         # Configuração da janela
         self.setWindowTitle(tr("config_title"))
-        self.setFixedSize(400, 350)
+        self.setFixedSize(400, 400)
         self.setStyleSheet("""
             QDialog {
                 background-color: #f5f5f5;
@@ -193,28 +193,45 @@ class ReminderOptions(QDialog):
         self.grid.addWidget(self.deck_select, 0, 1)
         self.grid.addWidget(self.freq_select_text, 1, 0)
         self.grid.addWidget(self.freq_select, 1, 1)
-        self.grid.addWidget(self.enabled_check_text, 2, 0)
-        self.grid.addWidget(self.enabled_check, 2, 1)
+
+        # Adiciona o controle de posição da janela
+        window_location_label = QLabel(tr("window_location_label"))
+        self.window_location_select = QComboBox()
+        self.window_location_select.addItem(tr("window_location_bottom_right"), "bottom_right")
+        self.window_location_select.addItem(tr("window_location_bottom_left"), "bottom_left")
+        self.window_location_select.addItem(tr("window_location_center"), "center")
+        
+        # Define a posição atual
+        current_location = self.config.get("window_location", "bottom_right")
+        index = self.window_location_select.findData(current_location)
+        if index >= 0:
+            self.window_location_select.setCurrentIndex(index)
+            
+        self.grid.addWidget(window_location_label, 2, 0)
+        self.grid.addWidget(self.window_location_select, 2, 1)
+        self.grid.addWidget(self.enabled_check_text, 3, 0)
+        self.grid.addWidget(self.enabled_check, 3, 1)
+
         # Linha divisória antes do grupo
         from PyQt6.QtWidgets import QFrame
         self.inactivity_group_divider_top = QFrame()
         self.inactivity_group_divider_top.setFrameShape(QFrame.Shape.HLine)
         self.inactivity_group_divider_top.setFrameShadow(QFrame.Shadow.Sunken)
-        self.grid.addWidget(self.inactivity_group_divider_top, 3, 0, 1, 2)
+        self.grid.addWidget(self.inactivity_group_divider_top, 4, 0, 1, 2)
 
-        self.grid.addWidget(self.inactivity_after_max_answer_check, 4, 0, 1, 2)
-        self.grid.addWidget(self.inactivity_extra_minutes_label, 5, 0)
-        self.grid.addWidget(self.inactivity_extra_minutes_select, 5, 1)
+        self.grid.addWidget(self.inactivity_after_max_answer_check, 5, 0, 1, 2)
+        self.grid.addWidget(self.inactivity_extra_minutes_label, 6, 0)
+        self.grid.addWidget(self.inactivity_extra_minutes_select, 6, 1)
 
         # Linha divisória depois do grupo
         self.inactivity_group_divider_bottom = QFrame()
         self.inactivity_group_divider_bottom.setFrameShape(QFrame.Shape.HLine)
         self.inactivity_group_divider_bottom.setFrameShadow(QFrame.Shadow.Sunken)
-        self.grid.addWidget(self.inactivity_group_divider_bottom, 6, 0, 1, 2)
+        self.grid.addWidget(self.inactivity_group_divider_bottom, 7, 0, 1, 2)
 
-        self.grid.addWidget(self.show_card_btn, 7, 0, 1, 2)
-        self.grid.addWidget(self.ok_btn, 8, 0)
-        self.grid.addWidget(self.close_btn, 8, 1)
+        self.grid.addWidget(self.show_card_btn, 8, 0, 1, 2)
+        self.grid.addWidget(self.ok_btn, 9, 0)
+        self.grid.addWidget(self.close_btn, 9, 1)
 
         self.setLayout(self.grid)
 
@@ -255,7 +272,7 @@ class ReminderOptions(QDialog):
                 "deck": self.deck_select.currentData() or self.deck_select.currentText(),
                 "frequency": self.freq_select_map[self.freq_select.currentText()],
                 "enabled": self.enabled_check.checkState() == Qt.CheckState.Checked,
-                "window_location": "bottom_right",
+                "window_location": self.window_location_select.currentData(),
                 "inactivity_after_max_answer": self.inactivity_after_max_answer_check.isChecked(),
                 "inactivity_extra_minutes": self.inactivity_extra_minutes_select.currentData()
             }
@@ -278,7 +295,7 @@ class ReminderOptions(QDialog):
 
     def resizeEvent(self, event):
         # Impede redimensionamento manual da janela
-        self.setFixedSize(400, 350)
+        self.setFixedSize(400, 400)
         super().resizeEvent(event)
 
     def show_next_card_and_close(self):

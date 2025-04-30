@@ -103,6 +103,10 @@ translations = {
         "exception_scheduler": "Agendador não disponível",
         "exception_review_inactive": "Não foi possível obter o cartão atual porque a revisão não está ativa.",
         "exception_current_card": "Cartão não disponível",
+        "window_location_label": "Posição da janela:",
+        "window_location_bottom_right": "Canto inferior direito",
+        "window_location_bottom_left": "Canto inferior esquerdo",
+        "window_location_center": "Centro da tela",
     },
     "en": {
         "app_title": "Don't Stop Studying!",
@@ -191,6 +195,10 @@ translations = {
         "exception_scheduler": "Scheduler not available",
         "exception_review_inactive": "Could not get current card because review is not active.",
         "exception_current_card": "Card not available",
+        "window_location_label": "Window position:",
+        "window_location_bottom_right": "Bottom right corner",
+        "window_location_bottom_left": "Bottom left corner",
+        "window_location_center": "Center of screen",
     }
 }
 

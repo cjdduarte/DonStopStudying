@@ -181,14 +181,22 @@ class ReminderPopup(QDialog):
             config = self.anki_utils.get_config()
             screen_geometry = QApplication.instance().primaryScreen().availableGeometry()
             geo = self.frameGeometry()
-            if config.get("window_location", "center") == "bottom_right":
+            
+            location = config.get("window_location", "bottom_right")
+            
+            if location == "bottom_right":
                 x = screen_geometry.x() + screen_geometry.width() - geo.width() - 20
                 y = screen_geometry.y() + screen_geometry.height() - geo.height() - 20
                 self.move(x, y)
-            else:
+            elif location == "bottom_left":
+                x = screen_geometry.x() + 20
+                y = screen_geometry.y() + screen_geometry.height() - geo.height() - 20
+                self.move(x, y)
+            else:  # center
                 center_point = screen_geometry.center()
                 geo.moveCenter(center_point)
                 self.move(geo.topLeft())
+                
         except Exception as e:
             self.logger.error(f'Erro ao posicionar o popup: {str(e)}')
             self.move(100, 100)
