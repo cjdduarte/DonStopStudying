@@ -2,7 +2,7 @@
     "deck": "Default",
     "frequency": 10,
     "enabled": true,
-    "window_location": "sequential",
+    "window_location": "bottom_right",
     "inactivity_after_max_answer": false,
     "inactivity_extra_minutes": 5
 }
