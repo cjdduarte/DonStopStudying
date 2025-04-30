@@ -418,16 +418,13 @@ class AnkiUtils:
             if settings != user_settings:
                 self.logger.warning("Conflito detectado entre settings.json e settings_user.json")
                 
-                # Usa as configurações mais recentes (com base na data de modificação)
-                settings_mtime = os.path.getmtime(settings_path)
-                user_settings_mtime = os.path.getmtime(user_settings_path)
-                
-                if user_settings_mtime > settings_mtime:
-                    self.logger.info("Usando configurações de settings_user.json (mais recente)")
-                    self.set_config(user_settings)
-                else:
-                    self.logger.info("Usando configurações de settings.json (mais recente)")
-                    self.backup_config()
+                # Mescla as configurações, mantendo as do usuário e adicionando novas opções
+                merged_config = settings.copy()  # Começa com as configurações padrão
+                for key, value in user_settings.items():
+                    merged_config[key] = value  # Preserva os valores do usuário
+                    
+                self.logger.info("Mesclando configurações, preservando valores do usuário e adicionando novas opções")
+                self.set_config(merged_config)
                     
                 return True
                 
