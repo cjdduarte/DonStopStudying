@@ -7,26 +7,24 @@ if addon_dir not in sys.path:
     sys.path.append(addon_dir)
 
 from aqt import gui_hooks
-from aqt.qt import QTimer
-# Copyright 2020 Charles Henry - Modificado
-
-from gui.popup import ReminderPopup
-import time
-import logging
+from aqt.qt import QTimer, QAction
 from aqt import mw
-from aqt.qt import *
 from aqt.utils import showInfo
 from gui.popup import ReminderPopup
 from anki_utils import AnkiUtils
 from gui.options import ReminderOptions
 from dont_stop_scheduler import DontStopScheduler
 from translations import tr
+import time
+import logging
 
 # Configuração do logger
 logger = logging.getLogger(__name__.split('.')[0])
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s", "%H:%M:%S")
 sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(formatter)
+sh.setStream(sys.stdout)  # Força o uso do stdout
+sh.encoding = 'utf-8'  # Define o encoding como UTF-8
 logger.addHandler(sh)
 logger.setLevel(logging.WARNING)
 # Timers para controle de inatividade na revisão
@@ -150,71 +148,42 @@ def show_options():
 
 
 def init_addon():
-    """Inicializa o addon após o perfil ser carregado"""
+    """Inicializa o addon"""
     global reminder_popup, anki_utils, dont_stop_scheduler
-    
     logger.info(tr('log_initializing'))
-
-    # Tenta ler o meta.json se ele existir
-    import os
-    import json
-    meta_path = os.path.join(os.path.dirname(__file__), "meta.json")
-    meta_data = None
-    if os.path.exists(meta_path):
-        try:
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta_data = json.load(f)
-            logger.info("meta.json carregado com sucesso.")
-        except Exception as e:
-            logger.warning(f"Falha ao ler meta.json: {e}")
-    else:
-        logger.info("meta.json não encontrado. Pulando leitura.")
-    
-    # Inicialização dos componentes principais
-    global reminder_popup
-    reminder_popup = ReminderPopup(mw)
-    anki_utils = AnkiUtils()
     
     try:
-        # Inicialização do agendador
-        dont_stop_scheduler = DontStopScheduler(show_lembrete, hide_lembrete, anki_utils)
-        dont_stop_scheduler.set_schedule(anki_utils.get_config()['frequency'] * 60)
+        # Inicializa utilitários
+        anki_utils = AnkiUtils()
         
-        # Verificar se há decks disponíveis antes de iniciar o agendador
-        decks = anki_utils.get_decks()
-        if not decks:
-            logger.warning(tr('log_no_deck'))
-        else:
-            # Verificar se o deck configurado existe
-            config = anki_utils.get_config()
-            deck_name = config.get('deck', '')
-            
-            # Se o deck configurado estiver vazio ou não existir, usar o primeiro deck disponível
-            # Verifica se o deck salvo existe na lista de decks disponíveis
-            deck_names = [d.name if hasattr(d, "name") else d[0] for d in decks]
-            if not deck_name or deck_name not in deck_names:
-                logger.warning(tr('log_deck_not_found').format(deck_name))
-                deck_name = deck_names[0]
-                config['deck'] = deck_name
-                # Salva a configuração atualizada no arquivo
-                anki_utils.set_config(config)
-                logger.info(tr('log_empty_deck').format(deck_name))
-            
-            # Iniciar o agendador se estiver habilitado
-            if config['enabled']:
-                logger.info('Iniciando agendador...')
-                dont_stop_scheduler.start_schedule()
+        # Verifica se existe configurações do usuário
+        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
+        if os.path.exists(user_settings_path):
+            # Restaura as configurações do usuário
+            anki_utils.restore_config()
+        
+        # Inicializa o popup e o agendador
+        reminder_popup = ReminderPopup(mw)
+        dont_stop_scheduler = DontStopScheduler(
+            alarm_func=show_lembrete,
+            cancel_func=hide_lembrete,
+            anki_utils=anki_utils
+        )
+        
+        # Configura o menu de opções
+        action = QAction(tr("options_menu"), mw)
+        action.triggered.connect(show_options)
+        mw.form.menuTools.addAction(action)
+        
+        # Inicia o agendador
+        dont_stop_scheduler.start_schedule()
+        
     except Exception as e:
         logger.error(tr('error_init_addon').format(str(e)))
 
 
 # Adiciona a ação de configuração ao gerenciador de addons
 mw.addonManager.setConfigAction(__name__, lambda: show_options())
-
-# Adiciona a opção ao menu Ferramentas
-options_action = QAction(tr("options_menu"), mw)
-options_action.triggered.connect(lambda _: show_options())
-mw.form.menuTools.addAction(options_action)
 
 # Inicializa o addon quando o perfil for carregado
 mw.addonManager.setConfigUpdatedAction(__name__, lambda: dont_stop_scheduler.update_state(anki_utils.get_config()) if dont_stop_scheduler else None)

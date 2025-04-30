@@ -1,6 +1,9 @@
-# Copyright 2020 Charles Henry - Modificado
-from PyQt6 import QtCore
-from aqt import Qt, QWidget, QGridLayout, QPushButton, QDialog, QHBoxLayout, QLabel, QVBoxLayout, QComboBox
+# Copyright 2025 Carlos Duarte
+from aqt.qt import (
+    QDialog, QWidget, QGridLayout, QPushButton,
+    QHBoxLayout, QLabel, QVBoxLayout, QComboBox,
+    Qt, QApplication
+)
 from aqt.utils import showInfo, tooltip
 from anki_utils import AnkiUtils
 import logging
@@ -11,8 +14,8 @@ class ReminderPopup(QDialog):
 
     def __init__(self, parent):
         super().__init__(parent=parent)
-        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint | QtCore.Qt.WindowType.Window)
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Window)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setModal(True)
         self.resize(400, 260)  # Aumentei a largura total
 
@@ -110,7 +113,7 @@ class ReminderPopup(QDialog):
                 margin-right: 8px;
             }
         """)
-        combo_layout.addWidget(self.deck_select, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        combo_layout.addWidget(self.deck_select, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(combo_container)
 
         # Container para botões
@@ -177,12 +180,10 @@ class ReminderPopup(QDialog):
     def set_card_position(self):
         """Posiciona o popup conforme a configuração em settings.json"""
         try:
-            from PyQt6.QtWidgets import QApplication
-            config = self.anki_utils.get_config()
             screen_geometry = QApplication.instance().primaryScreen().availableGeometry()
             geo = self.frameGeometry()
             
-            location = config.get("window_location", "bottom_right")
+            location = self.anki_utils.get_config().get("window_location", "bottom_right")
             
             if location == "bottom_right":
                 x = screen_geometry.x() + screen_geometry.width() - geo.width() - 20
@@ -216,7 +217,7 @@ class ReminderPopup(QDialog):
                     mw.showMaximized()
                 mw.raise_()
                 mw.activateWindow()
-                mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)
+                mw.setWindowState(mw.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive | Qt.WindowState.WindowMaximized)
             else:
                 # Se não estiver na tela de revisão, muda para ela
                 deck_name = self.deck_select.currentData() or self.deck_select.currentText()
@@ -232,7 +233,7 @@ class ReminderPopup(QDialog):
                 # Traz a janela para frente
                 mw.raise_()
                 mw.activateWindow()
-                mw.setWindowState(mw.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive | QtCore.Qt.WindowState.WindowMaximized)
+                mw.setWindowState(mw.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive | Qt.WindowState.WindowMaximized)
         except Exception as e:
             self.logger.error(f'Erro ao iniciar o estudo: {str(e)}')
         self.close()
@@ -247,7 +248,6 @@ class ReminderPopup(QDialog):
         self.logger.info('Mostrando popup de lembrete...')
         try:
             # Toca um beep suave
-            from aqt import QApplication
             QApplication.beep()
             
             config = self.anki_utils.get_config()

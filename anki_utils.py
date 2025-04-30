@@ -1,4 +1,4 @@
-# Copyright 2020 Charles Henry - Modificado
+# Copyright 2025 Carlos Duarte
 import aqt
 import logging
 from translations import tr
@@ -297,10 +297,61 @@ class AnkiUtils:
         import os
         import json
         settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
+        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
+        
         try:
+            # Se o arquivo de configurações do usuário não existe, cria um backup das configurações atuais
+            if not os.path.exists(user_settings_path):
+                self.backup_config()
+                
+            # Salva as novas configurações
             with open(settings_path, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
             return True
         except Exception as e:
             self.logger.error(tr('error_save_config').format(str(e)))
             return False
+
+    def backup_config(self):
+        """Cria um backup das configurações do usuário em settings_user.json"""
+        import os
+        import json
+        import shutil
+        settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
+        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
+        
+        try:
+            if os.path.exists(settings_path):
+                shutil.copy2(settings_path, user_settings_path)
+                self.logger.info("Configurações do usuário salvas com sucesso")
+                return True
+            return False
+        except Exception as e:
+            self.logger.error(f"Erro ao salvar configurações do usuário: {str(e)}")
+            return False
+
+    def restore_config(self):
+        """Restaura as configurações do usuário de settings_user.json"""
+        import os
+        import json
+        import shutil
+        settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
+        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
+        
+        try:
+            if os.path.exists(user_settings_path):
+                shutil.copy2(user_settings_path, settings_path)
+                self.logger.info("Configurações do usuário restauradas com sucesso")
+                return True
+            return False
+        except Exception as e:
+            self.logger.error(f"Erro ao restaurar configurações do usuário: {str(e)}")
+            return False
+
+    def merge_configs(self, default_config, user_config):
+        """Mescla configurações padrão com configurações do usuário"""
+        merged = default_config.copy()
+        for key, value in user_config.items():
+            if key in merged:
+                merged[key] = value
+        return merged

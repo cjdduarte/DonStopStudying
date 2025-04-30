@@ -1,5 +1,5 @@
-# Copyright 2020 Charles Henry - Modificado
-from PyQt6.QtCore import QTimer
+# Copyright 2025 Carlos Duarte
+from aqt.qt import QTimer
 import time
 import logging
 from aqt import mw

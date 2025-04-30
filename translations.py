@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QLocale
+from aqt.qt import QLocale
 from aqt import mw
 
 def get_language():

@@ -1,7 +1,8 @@
-from aqt.qt import QLineEdit, QMessageBox
-# Copyright 2020 Charles Henry - Modificado
-from PyQt6 import QtCore
-from aqt import Qt, QWidget, QGridLayout, QPushButton, QDialog, QHBoxLayout, QLabel, QVBoxLayout, QComboBox, QCheckBox, QSpinBox
+from aqt.qt import (
+    QLineEdit, QMessageBox, QWidget, QGridLayout, QPushButton,
+    QDialog, QHBoxLayout, QLabel, QVBoxLayout, QComboBox,
+    QCheckBox, QSpinBox, QFrame, Qt, QApplication
+)
 from aqt.utils import showInfo, tooltip
 from anki_utils import AnkiUtils
 import logging
@@ -141,7 +142,6 @@ class ReminderOptions(QDialog):
             self.enabled_check.setChecked(True)  # Valor padrão
 
         # --- Inatividade após tempo máximo do cartão ---
-        from PyQt6.QtWidgets import QFrame
         self.inactivity_after_max_answer_check = QCheckBox(tr("inactivity_reminder_label"))
         self.inactivity_after_max_answer_check.setChecked(self.config.get('inactivity_after_max_answer', False))
 
@@ -214,7 +214,6 @@ class ReminderOptions(QDialog):
         self.grid.addWidget(self.enabled_check, 3, 1)
 
         # Linha divisória antes do grupo
-        from PyQt6.QtWidgets import QFrame
         self.inactivity_group_divider_top = QFrame()
         self.inactivity_group_divider_top.setFrameShape(QFrame.Shape.HLine)
         self.inactivity_group_divider_top.setFrameShadow(QFrame.Shadow.Sunken)
