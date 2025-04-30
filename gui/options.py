@@ -14,6 +14,7 @@ class ReminderOptions(QDialog):
         self.anki_utils = AnkiUtils()
         self.dont_stop_scheduler = dont_stop_scheduler
         self.logger = logging.getLogger(__name__.split('.')[0])
+        self.has_changes = False  # Flag para rastrear alterações
         
         try:
             self.config = self.anki_utils.get_config()
@@ -235,6 +236,14 @@ class ReminderOptions(QDialog):
 
         self.setLayout(self.grid)
 
+        # Conectar sinais de mudança
+        self.deck_select.currentIndexChanged.connect(self.on_deck_changed)
+        self.freq_select.currentIndexChanged.connect(self.on_frequency_changed)
+        self.enabled_check.stateChanged.connect(self.on_enabled_changed)
+        self.window_location_select.currentIndexChanged.connect(self.on_window_location_changed)
+        self.inactivity_after_max_answer_check.stateChanged.connect(self.on_inactivity_changed)
+        self.inactivity_extra_minutes_select.currentIndexChanged.connect(self.on_extra_minutes_changed)
+
     def center_on_screen(self):
         """Centraliza a janela de opções na tela principal do Anki"""
         try:
@@ -282,6 +291,7 @@ class ReminderOptions(QDialog):
                     self.dont_stop_scheduler.update_state(self.config)
                     self.logger.debug("Novo valor de configuração: %s" % self.anki_utils.get_config())
                     tooltip(tr("config_saved"))
+                    self.has_changes = False  # Reseta a flag de alterações
                 except Exception as e:
                     self.logger.error(f'Erro ao atualizar o agendador: {str(e)}')
                     QMessageBox.warning(self, tr("options_menu"), tr("config_scheduler_error"))
@@ -298,8 +308,75 @@ class ReminderOptions(QDialog):
         self.setFixedSize(400, 400)
         super().resizeEvent(event)
 
+    def on_deck_changed(self, index):
+        """Marca que houve alteração no deck selecionado"""
+        self.has_changes = True
+
+    def on_frequency_changed(self, index):
+        """Marca que houve alteração na frequência"""
+        self.has_changes = True
+
+    def on_enabled_changed(self, state):
+        """Marca que houve alteração no estado de habilitado"""
+        self.has_changes = True
+
+    def on_window_location_changed(self, index):
+        """Marca que houve alteração na posição da janela"""
+        self.has_changes = True
+
+    def on_inactivity_changed(self, state):
+        """Marca que houve alteração no estado de inatividade"""
+        self.has_changes = True
+
+    def on_extra_minutes_changed(self, index):
+        """Marca que houve alteração nos minutos extras"""
+        self.has_changes = True
+
+    def closeEvent(self, event):
+        """Verifica se há alterações não salvas antes de fechar"""
+        if self.has_changes:
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle(tr("unsaved_changes_title"))
+            msg_box.setText(tr("unsaved_changes_msg"))
+            msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel)
+            yes_btn = msg_box.button(QMessageBox.StandardButton.Yes)
+            no_btn = msg_box.button(QMessageBox.StandardButton.No)
+            cancel_btn = msg_box.button(QMessageBox.StandardButton.Cancel)
+            yes_btn.setText(tr("yes"))
+            no_btn.setText(tr("no"))
+            cancel_btn.setText(tr("cancel"))
+            reply = msg_box.exec()
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                self.update_config()
+                event.accept()
+            elif reply == QMessageBox.StandardButton.No:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
+
     def show_next_card_and_close(self):
         """Testa o lembrete e fecha a janela de opções"""
+        if self.has_changes:
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle(tr("unsaved_changes_title"))
+            msg_box.setText(tr("unsaved_changes_test_msg"))
+            msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel)
+            yes_btn = msg_box.button(QMessageBox.StandardButton.Yes)
+            no_btn = msg_box.button(QMessageBox.StandardButton.No)
+            cancel_btn = msg_box.button(QMessageBox.StandardButton.Cancel)
+            yes_btn.setText(tr("yes"))
+            no_btn.setText(tr("no"))
+            cancel_btn.setText(tr("cancel"))
+            reply = msg_box.exec()
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                self.update_config()
+            elif reply == QMessageBox.StandardButton.Cancel:
+                return
+        
         try:
             self.dont_stop_scheduler.exec_schedule()
         except Exception as e:

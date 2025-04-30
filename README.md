@@ -89,6 +89,11 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ### **Changelog**
 
+- **v1.1 - 2025-04-30 - Improvements**:
+  - Added window position configuration (bottom right, bottom left, center).
+  - Added unsaved changes warning when closing or testing with pending changes.
+  - Improved configuration menu layout and usability.
+
 - **v1.0 - 2025-04-28 - Initial Release**:
   - Periodic and inactivity reminders.
   - GUI configuration.

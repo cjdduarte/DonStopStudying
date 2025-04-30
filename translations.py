@@ -107,6 +107,10 @@ translations = {
         "window_location_bottom_right": "Canto inferior direito",
         "window_location_bottom_left": "Canto inferior esquerdo",
         "window_location_center": "Centro da tela",
+        "unsaved_changes_title": "Alterações não salvas",
+        "unsaved_changes_msg": "Existem alterações não salvas. Deseja salvar antes de sair?",
+        "unsaved_changes_test_msg": "Existem alterações não salvas. Deseja salvar antes de testar?",
+        "cancel": "Cancelar",
     },
     "en": {
         "app_title": "Don't Stop Studying!",
@@ -199,6 +203,10 @@ translations = {
         "window_location_bottom_right": "Bottom right corner",
         "window_location_bottom_left": "Bottom left corner",
         "window_location_center": "Center of screen",
+        "unsaved_changes_title": "Unsaved changes",
+        "unsaved_changes_msg": "There are unsaved changes. Do you want to save before exiting?",
+        "unsaved_changes_test_msg": "There are unsaved changes. Do you want to save before testing?",
+        "cancel": "Cancel",
     }
 }
 
