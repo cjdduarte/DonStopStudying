@@ -2,7 +2,7 @@
 from aqt.qt import (
     QDialog, QWidget, QGridLayout, QPushButton,
     QHBoxLayout, QLabel, QVBoxLayout, QComboBox,
-    Qt, QApplication
+    Qt, QApplication, QTimer
 )
 from aqt.utils import showInfo, tooltip
 from anki_utils import AnkiUtils
@@ -21,6 +21,8 @@ class ReminderPopup(QDialog):
 
         self.anki_utils = AnkiUtils()
         self.logger = logging.getLogger(__name__.split('.')[0])
+        self.position_index = 0  # Índice para controlar a sequência de posições
+        self.positions = ["bottom_right", "bottom_left", "center"]  # Sequência fixa de posições
 
         # Container central
         self.central_widget = QWidget(self)
@@ -187,6 +189,11 @@ class ReminderPopup(QDialog):
             
             location = self.anki_utils.get_config().get("window_location", "bottom_right")
             
+            # Se for posição sequencial, usa a sequência fixa
+            if location == "sequential":
+                location = self.positions[self.position_index]
+                self.position_index = (self.position_index + 1) % len(self.positions)
+            
             if location == "bottom_right":
                 x = screen_geometry.x() + screen_geometry.width() - geo.width() - 20
                 y = screen_geometry.y() + screen_geometry.height() - geo.height() - 20
@@ -199,6 +206,17 @@ class ReminderPopup(QDialog):
                 center_point = screen_geometry.center()
                 geo.moveCenter(center_point)
                 self.move(geo.topLeft())
+                
+            # Configura o timer para posição sequencial
+            if self.anki_utils.get_config().get("window_location") == "sequential":
+                if not hasattr(self, 'sequence_position_timer'):
+                    self.sequence_position_timer = QTimer()
+                    self.sequence_position_timer.timeout.connect(self.set_card_position)
+                if not self.sequence_position_timer.isActive():
+                    self.sequence_position_timer.start(10000)  # 10 segundos
+            elif hasattr(self, 'sequence_position_timer'):
+                self.sequence_position_timer.stop()
+                self.position_index = 0  # Reseta o índice quando sai do modo sequencial
                 
         except Exception as e:
             self.logger.error(f'Erro ao posicionar o popup: {str(e)}')

@@ -201,6 +201,7 @@ class ReminderOptions(QDialog):
         self.window_location_select.addItem(tr("window_location_bottom_right"), "bottom_right")
         self.window_location_select.addItem(tr("window_location_bottom_left"), "bottom_left")
         self.window_location_select.addItem(tr("window_location_center"), "center")
+        self.window_location_select.addItem(tr("window_location_random"), "sequential")
         
         # Define a posição atual
         current_location = self.config.get("window_location", "bottom_right")
