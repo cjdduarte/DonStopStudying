@@ -156,11 +156,8 @@ def init_addon():
         # Inicializa utilitários
         anki_utils = AnkiUtils()
         
-        # Verifica se existe configurações do usuário
-        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
-        if os.path.exists(user_settings_path):
-            # Restaura as configurações do usuário
-            anki_utils.restore_config()
+        # Verifica e resolve conflitos de configuração
+        anki_utils.check_config_conflict()
         
         # Inicializa o popup e o agendador
         reminder_popup = ReminderPopup(mw)

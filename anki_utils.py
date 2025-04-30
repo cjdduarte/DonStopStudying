@@ -257,56 +257,92 @@ class AnkiUtils:
             self.logger.error(tr('error_get_current_card').format(str(e)))
             raise Exception(tr('exception_current_card'))
 
-    def get_config(self):
-        """Obtém a configuração do addon a partir de settings.json.
+    def merge_configs(self, default_config, user_config):
+        """Mescla configurações padrão com configurações do usuário, preservando valores do usuário"""
+        merged = default_config.copy()  # Começa com as configurações padrão
+        for key, value in user_config.items():
+            if key in merged:  # Se a chave existe nas configurações padrão
+                merged[key] = value  # Usa o valor do usuário
+        return merged
 
-        - Lê o arquivo settings.json na raiz do addon.
-        - Se não existir, usa valores padrão internos.
-        - Sempre salva o resultado em settings.json na primeira execução.
+    def get_config(self):
+        """Obtém a configuração do addon, priorizando settings_user.json
+        
+        - Primeiro tenta ler settings_user.json
+        - Se não existir, tenta ler settings.json
+        - Se nenhum existir, usa valores padrão e salva em ambos
+        - Mescla com configurações padrão para garantir que novas opções sejam adicionadas
         """
         import os
         import json
         settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
+        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         default_config = {
             "deck": "",
             "frequency": 30,
             "enabled": True,
-            "window_location": "bottom_right"
+            "window_location": "bottom_right",
+            "inactivity_after_max_answer": False,
+            "inactivity_extra_minutes": 5
         }
+        
         try:
+            # Primeiro tenta ler o arquivo do usuário
+            if os.path.exists(user_settings_path):
+                with open(user_settings_path, "r", encoding="utf-8") as f:
+                    user_config = json.load(f)
+                # Mescla com as configurações padrão
+                config = self.merge_configs(default_config, user_config)
+                # Se houve mudanças, atualiza o arquivo do usuário
+                if config != user_config:
+                    self.logger.info("Novas opções detectadas, atualizando settings_user.json")
+                    with open(user_settings_path, "w", encoding="utf-8") as f:
+                        json.dump(config, f, ensure_ascii=False, indent=4)
+                return config
+                
+            # Se não existir, tenta ler o arquivo padrão
             if os.path.exists(settings_path):
                 with open(settings_path, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                # print("DEBUG: Configuração lida de settings.json:", config)  # LOG TEMPORÁRIO
-                # Garante que todos os campos necessários estejam presentes
-                for k, v in default_config.items():
-                    if k not in config:
-                        config[k] = v
+                    settings_config = json.load(f)
+                # Mescla com as configurações padrão
+                config = self.merge_configs(default_config, settings_config)
+                # Salva no arquivo do usuário
+                with open(user_settings_path, "w", encoding="utf-8") as f:
+                    json.dump(config, f, ensure_ascii=False, indent=4)
                 return config
-            else:
-                # Usa apenas os valores padrão internos e salva em settings.json
-                with open(settings_path, "w", encoding="utf-8") as f:
-                    json.dump(default_config, f, ensure_ascii=False, indent=4)
-                return default_config
+                
+            # Se nenhum existir, usa os valores padrão e salva em ambos
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(default_config, f, ensure_ascii=False, indent=4)
+            with open(user_settings_path, "w", encoding="utf-8") as f:
+                json.dump(default_config, f, ensure_ascii=False, indent=4)
+            return default_config
+            
         except Exception as e:
             self.logger.error(tr('error_get_config').format(str(e)))
             return default_config
 
     def set_config(self, config):
-        """Salva a configuração do addon em settings.json"""
+        """Salva a configuração do addon, priorizando settings_user.json
+        
+        - Salva primeiro em settings_user.json
+        - Depois salva em settings.json
+        """
         import os
         import json
         settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
         user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         
         try:
-            # Se o arquivo de configurações do usuário não existe, cria um backup das configurações atuais
-            if not os.path.exists(user_settings_path):
-                self.backup_config()
+            # Primeiro salva no arquivo do usuário
+            with open(user_settings_path, "w", encoding="utf-8") as f:
+                json.dump(config, f, ensure_ascii=False, indent=4)
                 
-            # Salva as novas configurações
+            # Depois salva no arquivo padrão
             with open(settings_path, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
+                
+            self.logger.info("Configurações salvas com sucesso em settings_user.json e settings.json")
             return True
         except Exception as e:
             self.logger.error(tr('error_save_config').format(str(e)))
@@ -316,42 +352,86 @@ class AnkiUtils:
         """Cria um backup das configurações do usuário em settings_user.json"""
         import os
         import json
-        import shutil
         settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
         user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         
         try:
             if os.path.exists(settings_path):
-                shutil.copy2(settings_path, user_settings_path)
-                self.logger.info("Configurações do usuário salvas com sucesso")
+                # Lê as configurações atuais
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    
+                # Salva no arquivo de backup
+                with open(user_settings_path, "w", encoding="utf-8") as f:
+                    json.dump(config, f, ensure_ascii=False, indent=4)
+                    
+                self.logger.info("Backup das configurações do usuário salvo com sucesso")
                 return True
             return False
         except Exception as e:
-            self.logger.error(f"Erro ao salvar configurações do usuário: {str(e)}")
+            self.logger.error(f"Erro ao salvar backup das configurações: {str(e)}")
             return False
 
     def restore_config(self):
-        """Restaura as configurações do usuário de settings_user.json"""
+        """Restaura as configurações do usuário de settings_user.json para settings.json"""
         import os
         import json
-        import shutil
         settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
         user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         
         try:
             if os.path.exists(user_settings_path):
-                shutil.copy2(user_settings_path, settings_path)
+                # Lê as configurações do backup
+                with open(user_settings_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    
+                # Salva no arquivo principal
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(config, f, ensure_ascii=False, indent=4)
+                    
                 self.logger.info("Configurações do usuário restauradas com sucesso")
                 return True
             return False
         except Exception as e:
-            self.logger.error(f"Erro ao restaurar configurações do usuário: {str(e)}")
+            self.logger.error(f"Erro ao restaurar configurações: {str(e)}")
             return False
 
-    def merge_configs(self, default_config, user_config):
-        """Mescla configurações padrão com configurações do usuário"""
-        merged = default_config.copy()
-        for key, value in user_config.items():
-            if key in merged:
-                merged[key] = value
-        return merged
+    def check_config_conflict(self):
+        """Verifica se há diferenças entre settings.json e settings_user.json e resolve o conflito"""
+        import os
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
+        user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
+        
+        try:
+            # Se nenhum dos arquivos existe, não há conflito
+            if not os.path.exists(settings_path) or not os.path.exists(user_settings_path):
+                return False
+                
+            # Lê ambos os arquivos
+            with open(settings_path, "r", encoding="utf-8") as f:
+                settings = json.load(f)
+            with open(user_settings_path, "r", encoding="utf-8") as f:
+                user_settings = json.load(f)
+                
+            # Verifica se há diferenças
+            if settings != user_settings:
+                self.logger.warning("Conflito detectado entre settings.json e settings_user.json")
+                
+                # Usa as configurações mais recentes (com base na data de modificação)
+                settings_mtime = os.path.getmtime(settings_path)
+                user_settings_mtime = os.path.getmtime(user_settings_path)
+                
+                if user_settings_mtime > settings_mtime:
+                    self.logger.info("Usando configurações de settings_user.json (mais recente)")
+                    self.set_config(user_settings)
+                else:
+                    self.logger.info("Usando configurações de settings.json (mais recente)")
+                    self.backup_config()
+                    
+                return True
+                
+            return False
+        except Exception as e:
+            self.logger.error(f"Erro ao verificar conflito de configurações: {str(e)}")
+            return False
