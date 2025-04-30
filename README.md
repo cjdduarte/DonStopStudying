@@ -54,7 +54,8 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ## **Changelog**
 
-- **v1.1 - 2025-04-30 - Improvements**:
+- - **v1.1 - 2025-04-30 - Improvements**:
+  - Enhanced popup appearance with a more elegant and uniform border
   - Added window position configuration
   - Added unsaved changes warning
   - Added automatic user settings preservation
@@ -66,6 +67,14 @@ You can adjust options via the GUI or directly in the `settings.json` file:
   - Modern and responsive popup
   - Smart window management
   - Improved timer control during review
+
+---
+
+### **Report Bugs**
+For issues or suggestions, open an issue at:
+[https://github.com/cjdduarte/DonStopStudying/issues](https://github.com/cjdduarte/DonStopStudying/issues)
+
+---
 
 ## **License**
 

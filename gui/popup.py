@@ -30,7 +30,9 @@ class ReminderPopup(QDialog):
             #central_widget {
                 background: white;
                 border-radius: 12px;
-                border: 1px solid #e0e0e0;
+                border: 3px solid #2196F3;
+                border-top: 3px solid #2196F3;
+                border-bottom: 3px solid #2196F3;
             }
         """)
 
