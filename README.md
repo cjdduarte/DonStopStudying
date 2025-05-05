@@ -54,6 +54,11 @@ You can adjust options via the GUI or directly in the `settings.json` file:
 
 ## **Changelog**
 
+- **v1.3 - 2025-04-30 - Bug Fix**:
+  - Fixed error when accessing addon settings during review mode
+  - Added automatic initialization of settings manager when needed
+  - Improved error handling for timer management
+
 - **v1.2 - 2025-04-30 - Improvements**:
   - Added sequential popup position rotation (changes every 10s)
   - Enhanced popup appearance with a more elegant and uniform border

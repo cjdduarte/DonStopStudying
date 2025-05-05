@@ -32,13 +32,19 @@ card_max_timer = None
 card_inactivity_timer = None
 
 def on_reviewer_did_show_question(card):
-    global card_max_timer, card_inactivity_timer
+    global card_max_timer, card_inactivity_timer, anki_utils
+
+    # Inicializa anki_utils se necessário
+    if anki_utils is None:
+        try:
+            from anki_utils import AnkiUtils
+            anki_utils = AnkiUtils()
+        except Exception as e:
+            logger.error(f"Erro ao inicializar anki_utils: {str(e)}")
+            return
 
     # Carrega configurações do addon
-    import json, os
-    settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
-    with open(settings_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
+    config = anki_utils.get_config()
 
     # Se não ativou o recurso, não faz nada
     if not config.get("inactivity_after_max_answer", False):
@@ -51,7 +57,7 @@ def on_reviewer_did_show_question(card):
         max_answer_secs = mw.col.conf.get("maxAnswerSecs", 120)
 
     # Tempo extra de inatividade (em minutos)
-    inactivity_extra = config.get("inactivity_extra_minutes", 3)
+    inactivity_extra = config.get("inactivity_extra_minutes", 1)
 
     # Cancela timers anteriores
     if card_max_timer:
@@ -71,15 +77,62 @@ def on_reviewer_did_show_question(card):
             show_lembrete()
         card_inactivity_timer.timeout.connect(show_inactivity_alert)
         card_inactivity_timer.start(inactivity_extra * 60 * 1000)
+        logger.info(f"Iniciando timer de inatividade: {inactivity_extra} minutos após o tempo máximo do cartão")
     card_max_timer.timeout.connect(start_inactivity_timer)
     card_max_timer.start(max_answer_secs * 1000)
+    logger.info(f"Iniciando timer do cartão: {max_answer_secs} segundos")
 
 def on_reviewer_did_answer_card(card, ease, reviewer):
     global card_max_timer, card_inactivity_timer
     if card_max_timer:
         card_max_timer.stop()
+        logger.info("Timer do cartão cancelado após resposta")
     if card_inactivity_timer:
         card_inactivity_timer.stop()
+        logger.info("Timer de inatividade cancelado após resposta")
+
+def on_reminder_dismissed():
+    """Reinicia o timer quando o usuário clica em 'depois'"""
+    global card_max_timer, card_inactivity_timer, anki_utils
+    
+    # Inicializa anki_utils se necessário
+    if anki_utils is None:
+        try:
+            from anki_utils import AnkiUtils
+            anki_utils = AnkiUtils()
+        except Exception as e:
+            logger.error(f"Erro ao inicializar anki_utils: {str(e)}")
+            return
+    
+    # Se estiver em revisão e com inatividade ativada
+    if mw.state == "review" and anki_utils.get_config().get("inactivity_after_max_answer", False):
+        # Cancela timers atuais
+        if card_max_timer:
+            card_max_timer.stop()
+        if card_inactivity_timer:
+            card_inactivity_timer.stop()
+            
+        # Reinicia o timer do cartão
+        mw = mw
+        max_answer_secs = 120  # padrão
+        if hasattr(mw.col, "conf"):
+            max_answer_secs = mw.col.conf.get("maxAnswerSecs", 120)
+            
+        card_max_timer = QTimer()
+        card_max_timer.setSingleShot(True)
+        def start_inactivity_timer():
+            global card_inactivity_timer
+            card_inactivity_timer = QTimer()
+            card_inactivity_timer.setSingleShot(True)
+            def show_inactivity_alert():
+                show_lembrete()
+            card_inactivity_timer.timeout.connect(show_inactivity_alert)
+            inactivity_extra = anki_utils.get_config().get("inactivity_extra_minutes", 1)
+            card_inactivity_timer.start(inactivity_extra * 60 * 1000)
+            logger.info(f"Timer de inatividade reiniciado após 'depois': {inactivity_extra} minutos")
+        card_max_timer.timeout.connect(start_inactivity_timer)
+        card_max_timer.start(max_answer_secs * 1000)
+        logger.info(f"Timer do cartão reiniciado após 'depois': {max_answer_secs} segundos")
 
 # Conecta os hooks na inicialização do addon
 gui_hooks.reviewer_did_show_question.append(on_reviewer_did_show_question)
@@ -91,8 +144,10 @@ def on_state_will_change(new_state, old_state):
     if dont_stop_scheduler:
         if new_state == "review":
             dont_stop_scheduler.pause_schedule()
+            logger.info("Scheduler pausado ao entrar em revisão")
         elif old_state == "review":
             dont_stop_scheduler.resume_schedule()
+            logger.info("Scheduler retomado ao sair da revisão")
 
 gui_hooks.state_will_change.append(on_state_will_change)
 

@@ -259,9 +259,14 @@ class ReminderPopup(QDialog):
         self.close()
 
     def hide_card(self):
-        # Implemente a lógica de esconder o popup aqui, se necessário
-        self.close()
-
+        """Esconde o popup e reinicia o timer se estiver em revisão"""
+        try:
+            from __init__ import on_reminder_dismissed
+            on_reminder_dismissed()
+            self.hide()
+        except Exception as e:
+            self.logger.error(f'Erro ao esconder popup: {str(e)}')
+            self.hide()
 
     def show_popup(self):
         """Mostra o popup de lembrete"""

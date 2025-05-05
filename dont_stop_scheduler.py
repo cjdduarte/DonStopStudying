@@ -28,6 +28,8 @@ class DontStopScheduler:
         self.timer.timeout.connect(self.exec_schedule)
         self.enabled = False
         self.paused = False
+        self.in_review = False
+        self.last_card_time = 0
         self.logger = logging.getLogger(__name__.split('.')[0])
 
     def reset_and_start_timer(self):
@@ -48,12 +50,12 @@ class DontStopScheduler:
         try:
             self.logger.info("Definindo agendamento: %s" % time.ctime())
             
-            # Verifica se o intervalo é válido
             if interval <= 0:
                 self.logger.warning(f"Intervalo inválido: {interval}. Usando o valor padrão de 1800 segundos (30 minutos).")
                 interval = 1800
                 
             self.schedule_interval = interval
+            self.reset_and_start_timer()
             return True
         except Exception as e:
             self.logger.error(f"Erro ao definir o agendamento: {str(e)}")
@@ -62,21 +64,26 @@ class DontStopScheduler:
     def exec_schedule(self):
         """Executa o agendamento"""
         try:
-            # Verifica se está em modo de revisão
-            if mw.state == "review":
-                # Verifica se o monitoramento de inatividade está ativado
-                config = self.anki_utils.get_config()
-                if not config.get("inactivity_after_max_answer", False):
-                    self.logger.info("Em modo de revisão e inatividade desativada, pulando lembrete")
-                    return
-                    
-            # Verifica se o addon está habilitado
             config = self.anki_utils.get_config()
+            
+            # Verifica se o addon está habilitado
             if not config.get('enabled', True):
                 self.logger.info("Addon desabilitado, pulando lembrete")
                 return
-                
+
+            # Verifica se está em modo de revisão
+            if mw.state == "review":
+                if config.get("inactivity_after_max_answer", False):
+                    # Em revisão com inatividade ativada, usa o timer do cartão
+                    return
+                else:
+                    # Em revisão sem inatividade, não mostra popup
+                    self.logger.info("Em modo de revisão e inatividade desativada, pulando lembrete")
+                    return
+            
+            # Fora da revisão ou em revisão sem inatividade, mostra popup normal
             self.alarm_func()
+            
         except Exception as e:
             self.logger.error(f'Erro ao executar agendamento: {str(e)}')
 
@@ -87,11 +94,9 @@ class DontStopScheduler:
         try:
             self.logger.info("Iniciando agendamento: %s" % time.ctime())
             
-            # Verifica se o timer já está ativo
             if self.timer.isActive():
                 self.timer.stop()
                 
-            # Converte segundos para milissegundos
             self.timer.start(self.schedule_interval * 1000)
             self.enabled = True
             return True
@@ -107,7 +112,6 @@ class DontStopScheduler:
         try:
             self.logger.info("Parando agendamento: %s" % time.ctime())
             
-            # Verifica se o timer está ativo
             if self.timer.isActive():
                 self.timer.stop()
                 
@@ -130,34 +134,26 @@ class DontStopScheduler:
             config: Dicionário com as configurações
         """
         try:
-            # Verifica se o config é válido
             if not isinstance(config, dict):
                 self.logger.error(f"Configuração inválida: {config}")
                 return False
                 
-            # Obtém a frequência da configuração
             frequency = config.get('frequency', 30)
             
-            # Verifica se a frequência é válida
             if not isinstance(frequency, (int, float)) or frequency <= 0:
                 self.logger.warning(f"Frequência inválida: {frequency}. Usando o valor padrão de 30 minutos.")
                 frequency = 30
                 
-            # Converte minutos para segundos
             new_interval = frequency * 60
             
-            # Atualiza o intervalo se necessário
             if self.schedule_interval != new_interval:
                 self.logger.debug(f'Frequência atual: [{self.schedule_interval}], nova frequência: [{new_interval}]')
                 self.schedule_interval = new_interval
-                # Reinicia o agendamento se já estiver em execução
                 if self.enabled:
                     self.start_schedule()
 
-            # Obtém o estado habilitado da configuração
             enabled = config.get('enabled', False)
             
-            # Reinicia o agendamento se o estado habilitado/desabilitado mudou
             if self.enabled != enabled:
                 self.logger.debug(f'Estado habilitado mudou de [{self.enabled}] para [{enabled}]')
                 if enabled:
@@ -177,6 +173,7 @@ class DontStopScheduler:
             if self.timer.isActive():
                 self.timer.stop()
             self.paused = True
+            self.in_review = True
         except Exception as e:
             self.logger.error(f"Erro ao pausar agendamento: {str(e)}")
 
@@ -187,5 +184,6 @@ class DontStopScheduler:
             if self.paused:
                 self.timer.start(self.schedule_interval * 1000)
                 self.paused = False
+                self.in_review = False
         except Exception as e:
             self.logger.error(f"Erro ao retomar agendamento: {str(e)}")
