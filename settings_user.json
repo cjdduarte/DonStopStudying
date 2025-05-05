@@ -1,8 +1,0 @@
-{
-    "deck": "01 - TEC - CAGERS - Geral",
-    "frequency": 1,
-    "enabled": true,
-    "window_location": "bottom_right",
-    "inactivity_after_max_answer": true,
-    "inactivity_extra_minutes": 1
-}
