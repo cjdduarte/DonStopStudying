@@ -270,7 +270,7 @@ class AnkiUtils:
         
         - Primeiro tenta ler settings_user.json
         - Se não existir, tenta ler settings.json
-        - Se nenhum existir, usa valores padrão e salva em ambos
+        - Se nenhum existir, usa valores padrão
         - Mescla com configurações padrão para garantir que novas opções sejam adicionadas
         """
         import os
@@ -279,11 +279,11 @@ class AnkiUtils:
         user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         default_config = {
             "deck": "",
-            "frequency": 30,
+            "frequency": 1,  # Valor padrão de 1 minuto
             "enabled": True,
             "window_location": "bottom_right",
             "inactivity_after_max_answer": False,
-            "inactivity_extra_minutes": 5
+            "inactivity_extra_minutes": 1  # Valor padrão de 1 minuto
         }
         
         try:
@@ -306,16 +306,9 @@ class AnkiUtils:
                     settings_config = json.load(f)
                 # Mescla com as configurações padrão
                 config = self.merge_configs(default_config, settings_config)
-                # Salva no arquivo do usuário
-                with open(user_settings_path, "w", encoding="utf-8") as f:
-                    json.dump(config, f, ensure_ascii=False, indent=4)
                 return config
                 
-            # Se nenhum existir, usa os valores padrão e salva em ambos
-            with open(settings_path, "w", encoding="utf-8") as f:
-                json.dump(default_config, f, ensure_ascii=False, indent=4)
-            with open(user_settings_path, "w", encoding="utf-8") as f:
-                json.dump(default_config, f, ensure_ascii=False, indent=4)
+            # Se nenhum existir, usa os valores padrão
             return default_config
             
         except Exception as e:
@@ -323,46 +316,41 @@ class AnkiUtils:
             return default_config
 
     def set_config(self, config):
-        """Salva a configuração do addon, priorizando settings_user.json
+        """Salva a configuração do addon apenas em settings_user.json
         
-        - Salva primeiro em settings_user.json
-        - Depois salva em settings.json
+        - Salva apenas em settings_user.json
+        - settings.json é mantido como referência padrão
         """
         import os
         import json
-        settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
         user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         
         try:
-            # Primeiro salva no arquivo do usuário
+            # Salva apenas no arquivo do usuário
             with open(user_settings_path, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
                 
-            # Depois salva no arquivo padrão
-            with open(settings_path, "w", encoding="utf-8") as f:
-                json.dump(config, f, ensure_ascii=False, indent=4)
-                
-            self.logger.info("Configurações salvas com sucesso em settings_user.json e settings.json")
+            self.logger.info("Configurações salvas com sucesso em settings_user.json")
             return True
         except Exception as e:
             self.logger.error(tr('error_save_config').format(str(e)))
             return False
 
     def backup_config(self):
-        """Cria um backup das configurações do usuário em settings_user.json"""
+        """Cria um backup das configurações do usuário em settings.json"""
         import os
         import json
         settings_path = os.path.join(os.path.dirname(__file__), "settings.json")
         user_settings_path = os.path.join(os.path.dirname(__file__), "settings_user.json")
         
         try:
-            if os.path.exists(settings_path):
-                # Lê as configurações atuais
-                with open(settings_path, "r", encoding="utf-8") as f:
+            if os.path.exists(user_settings_path):
+                # Lê as configurações do usuário
+                with open(user_settings_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
                     
-                # Salva no arquivo de backup
-                with open(user_settings_path, "w", encoding="utf-8") as f:
+                # Salva no arquivo de backup (settings.json)
+                with open(settings_path, "w", encoding="utf-8") as f:
                     json.dump(config, f, ensure_ascii=False, indent=4)
                     
                 self.logger.info("Backup das configurações do usuário salvo com sucesso")

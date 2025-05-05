@@ -23,14 +23,24 @@ class DontStopScheduler:
         self.alarm_func = alarm_func
         self.cancel_func = cancel_func
         self.anki_utils = anki_utils
-        self.schedule_interval = 1800  # Intervalo padrão em segundos (30 minutos)
+        self.logger = logging.getLogger(__name__.split('.')[0])
+        
+        # Lê a configuração inicial
+        try:
+            config = self.anki_utils.get_config()
+            frequency = config.get('frequency', 1)  # Valor padrão de 1 minuto
+            self.schedule_interval = frequency * 60  # Converte minutos para segundos
+            self.logger.debug(f'Frequência inicial lida do config: {frequency} minutos')
+        except Exception as e:
+            self.logger.error(f'Erro ao ler configuração inicial: {str(e)}')
+            self.schedule_interval = 60  # Valor padrão em segundos (1 minuto)
+        
         self.timer = QTimer()
         self.timer.timeout.connect(self.exec_schedule)
         self.enabled = False
         self.paused = False
         self.in_review = False
         self.last_card_time = 0
-        self.logger = logging.getLogger(__name__.split('.')[0])
 
     def reset_and_start_timer(self):
         """Reseta e inicia o timer de lembrete com o intervalo atual."""
@@ -51,8 +61,8 @@ class DontStopScheduler:
             self.logger.info("Definindo agendamento: %s" % time.ctime())
             
             if interval <= 0:
-                self.logger.warning(f"Intervalo inválido: {interval}. Usando o valor padrão de 1800 segundos (30 minutos).")
-                interval = 1800
+                self.logger.warning(f"Intervalo inválido: {interval}. Usando o valor padrão de 60 segundos (1 minuto).")
+                interval = 60
                 
             self.schedule_interval = interval
             self.reset_and_start_timer()
@@ -73,8 +83,11 @@ class DontStopScheduler:
 
             # Verifica se está em modo de revisão
             if mw.state == "review":
+                self.logger.debug(f'Em modo de revisão. Inatividade após resposta máxima: {config.get("inactivity_after_max_answer", False)}')
                 if config.get("inactivity_after_max_answer", False):
                     # Em revisão com inatividade ativada, usa o timer do cartão
+                    extra_minutes = config.get('inactivity_extra_minutes', 1)
+                    self.logger.info(f'Timer extra de inatividade configurado: {extra_minutes} minutos')
                     return
                 else:
                     # Em revisão sem inatividade, não mostra popup
@@ -82,6 +95,7 @@ class DontStopScheduler:
                     return
             
             # Fora da revisão ou em revisão sem inatividade, mostra popup normal
+            self.logger.debug(f'Timer normal ativo com intervalo de {self.schedule_interval // 60} minutos')
             self.alarm_func()
             
         except Exception as e:
@@ -99,6 +113,9 @@ class DontStopScheduler:
                 
             self.timer.start(self.schedule_interval * 1000)
             self.enabled = True
+            self.paused = False
+            self.in_review = False
+            self.logger.info(f"Timer iniciado com intervalo de {self.schedule_interval // 60} minutos")
             return True
         except Exception as e:
             self.logger.error(f"Erro ao iniciar o agendamento: {str(e)}")
@@ -138,22 +155,40 @@ class DontStopScheduler:
                 self.logger.error(f"Configuração inválida: {config}")
                 return False
                 
-            frequency = config.get('frequency', 30)
+            # Obtém a frequência da configuração
+            self.logger.debug(f'Config recebida: {config}')
+            frequency = config.get('frequency', 1)  # Valor padrão de 1 minuto
+            self.logger.debug(f'Frequência obtida do config: {frequency}')
             
+            # Obtém o tempo extra de inatividade
+            extra_minutes = config.get('inactivity_extra_minutes', 1)  # Valor padrão de 1 minuto
+            self.logger.info(f'Timer extra de inatividade configurado: {extra_minutes} minutos')
+            
+            # Verifica se a frequência é válida
             if not isinstance(frequency, (int, float)) or frequency <= 0:
-                self.logger.warning(f"Frequência inválida: {frequency}. Usando o valor padrão de 30 minutos.")
-                frequency = 30
+                self.logger.warning(f"Frequência inválida: {frequency}. Usando o valor padrão de 1 minuto.")
+                frequency = 1
                 
+            # Verifica se o tempo extra é válido
+            if not isinstance(extra_minutes, (int, float)) or extra_minutes <= 0:
+                self.logger.warning(f"Tempo extra inválido: {extra_minutes}. Usando o valor padrão de 1 minuto.")
+                extra_minutes = 1
+                
+            # Converte minutos para segundos
             new_interval = frequency * 60
+            self.logger.debug(f'Novo intervalo em segundos: {new_interval}')
             
+            # Atualiza o intervalo se necessário
             if self.schedule_interval != new_interval:
-                self.logger.debug(f'Frequência atual: [{self.schedule_interval}], nova frequência: [{new_interval}]')
+                self.logger.info(f'Timer normal atualizado: {self.schedule_interval // 60} -> {frequency} minutos')
                 self.schedule_interval = new_interval
                 if self.enabled:
                     self.start_schedule()
 
-            enabled = config.get('enabled', False)
+            # Obtém o estado habilitado da configuração
+            enabled = config.get('enabled', True)  # Valor padrão True
             
+            # Reinicia o agendamento se o estado habilitado/desabilitado mudou
             if self.enabled != enabled:
                 self.logger.debug(f'Estado habilitado mudou de [{self.enabled}] para [{enabled}]')
                 if enabled:
@@ -181,9 +216,12 @@ class DontStopScheduler:
         """Retoma o agendamento após pausa"""
         try:
             self.logger.info("Retomando agendamento")
-            if self.paused:
+            if self.paused and self.enabled:
                 self.timer.start(self.schedule_interval * 1000)
                 self.paused = False
                 self.in_review = False
+                self.logger.info(f"Timer reiniciado com intervalo de {self.schedule_interval // 60} minutos")
+            else:
+                self.logger.info("Não foi possível retomar o agendamento: paused={}, enabled={}".format(self.paused, self.enabled))
         except Exception as e:
             self.logger.error(f"Erro ao retomar agendamento: {str(e)}")

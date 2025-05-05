@@ -23,7 +23,7 @@ class ReminderOptions(QDialog):
             self.logger.error(f'Erro ao obter a configuração: {str(e)}')
             self.config = {
                 "deck": "",
-                "frequency": 30,
+                "frequency": 1,  # Valor padrão de 1 minuto
                 "enabled": True,
                 "window_location": "bottom_right"
             }
@@ -277,14 +277,19 @@ class ReminderOptions(QDialog):
         """Atualiza a configuração do addon"""
         self.logger.info('Atualizando configuração...')
         try:
+            freq_value = self.freq_select_map[self.freq_select.currentText()]
+            self.logger.debug(f'Valor da frequência selecionada: {freq_value}')
+            
             self.config = {
                 "deck": self.deck_select.currentData() or self.deck_select.currentText(),
-                "frequency": self.freq_select_map[self.freq_select.currentText()],
+                "frequency": freq_value,
                 "enabled": self.enabled_check.checkState() == Qt.CheckState.Checked,
                 "window_location": self.window_location_select.currentData(),
                 "inactivity_after_max_answer": self.inactivity_after_max_answer_check.isChecked(),
                 "inactivity_extra_minutes": self.inactivity_extra_minutes_select.currentData()
             }
+            self.logger.debug(f'Config a ser salva: {self.config}')
+            
             success = self.anki_utils.set_config(self.config)
             if success:
                 try:

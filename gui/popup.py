@@ -259,14 +259,16 @@ class ReminderPopup(QDialog):
         self.close()
 
     def hide_card(self):
-        """Esconde o popup e reinicia o timer se estiver em revisão"""
+        """Esconde o popup e dá foco ao Anki"""
         try:
-            from __init__ import on_reminder_dismissed
-            on_reminder_dismissed()
             self.hide()
+            # Usa a referência da janela principal através do anki_utils
+            main_window = self.anki_utils.main_window()
+            if main_window:
+                main_window.activateWindow()
+                main_window.raise_()
         except Exception as e:
             self.logger.error(f'Erro ao esconder popup: {str(e)}')
-            self.hide()
 
     def show_popup(self):
         """Mostra o popup de lembrete"""
