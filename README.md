@@ -1,4 +1,4 @@
-# **Don't Stop Studying! – Smart Reminders for Anki**
+# **Don't Stop Studying – Focus Alerts for Anki**
 
 This add-on for Anki displays automatic reminders to get back to studying, even when you're browsing outside of review mode, and also detects inactivity during reviews to help you stay focused and disciplined.
 
